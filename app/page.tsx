@@ -1,5 +1,7 @@
 import Image from "next/image";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getSupabaseServer } from "@/lib/supabase-server";
+
+export const dynamic = "force-dynamic";
 
 type Produit = {
   id: string;
@@ -9,7 +11,7 @@ type Produit = {
 };
 
 export default async function Home() {
-  const { data: produits } = await supabaseServer
+  const { data: produits } = await getSupabaseServer()
     .from("produits")
     .select("id, nom, description, image_url")
     .order("created_at", { ascending: false });
