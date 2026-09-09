@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
 
 export default function AdminLogin() {
   const router = useRouter();
+  const supabase = useMemo(() => getSupabase(), []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);

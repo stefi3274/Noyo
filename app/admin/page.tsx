@@ -1,25 +1,31 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
+import { CATEGORIES } from "@/lib/categories";
+
+export const dynamic = "force-dynamic";
 
 type Produit = {
   id: string;
   nom: string;
   description: string | null;
   image_url: string | null;
+  categorie: string | null;
 };
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const supabase = useMemo(() => getSupabase(), []);
   const [session, setSession] = useState<Session | null | undefined>(
     undefined
   );
   const [produits, setProduits] = useState<Produit[]>([]);
   const [nom, setNom] = useState("");
   const [description, setDescription] = useState("");
+  const [categorie, setCategorie] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,10 +33,10 @@ export default function AdminDashboard() {
   const loadProduits = useCallback(async () => {
     const { data } = await supabase
       .from("produits")
-      .select("id, nom, description, image_url")
+      .select("id, nom, description, image_url, categorie")
       .order("created_at", { ascending: false });
     setProduits((data as Produit[]) ?? []);
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -67,12 +73,13 @@ export default function AdminDashboard() {
 
       const { error: insertError } = await supabase
         .from("produits")
-        .insert({ nom, description, image_url });
+        .insert({ nom, description, categorie: categorie || null, image_url });
 
       if (insertError) throw insertError;
 
       setNom("");
       setDescription("");
+      setCategorie("");
       setFile(null);
       await loadProduits();
     } catch (err) {
@@ -117,6 +124,17 @@ export default function AdminDashboard() {
           onChange={(e) => setNom(e.target.value)}
           required
         />
+        <select
+          value={categorie}
+          onChange={(e) => setCategorie(e.target.value)}
+        >
+          <option value="">Catégorie...</option>
+          {CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
         <textarea
           placeholder="Description"
           value={description}
@@ -142,6 +160,7 @@ export default function AdminDashboard() {
             )}
             <div>
               <strong>{p.nom}</strong>
+              {p.categorie && <span className="admin-tag">{p.categorie}</span>}
               {p.description && <p>{p.description}</p>}
             </div>
             <button

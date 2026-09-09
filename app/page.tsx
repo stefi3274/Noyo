@@ -1,19 +1,15 @@
 import Image from "next/image";
 import { getSupabaseServer } from "@/lib/supabase-server";
+import ProduitsCatalogue, {
+  type Produit,
+} from "@/app/components/ProduitsCatalogue";
 
 export const dynamic = "force-dynamic";
-
-type Produit = {
-  id: string;
-  nom: string;
-  description: string | null;
-  image_url: string | null;
-};
 
 export default async function Home() {
   const { data: produits } = await getSupabaseServer()
     .from("produits")
-    .select("id, nom, description, image_url")
+    .select("id, nom, description, image_url, categorie")
     .order("created_at", { ascending: false });
 
   return (
@@ -24,17 +20,17 @@ export default async function Home() {
             <Image
               src="/logo-noyo.jpg"
               alt="Noyo — la vie commence ici, avec nous"
-              width={140}
-              height={114}
+              width={160}
+              height={130}
               priority
             />
           </a>
           <nav className="site-nav">
             <a href="#apropos">À propos</a>
             <a href="#produits">Produits</a>
-            <a href="#comment">Comment ça marche</a>
+            <a href="#fournisseurs">Nos fournisseurs</a>
             <a href="#contact">Contact</a>
-            <a href="#contact" className="btn btn-primary">
+            <a href="/inscription" className="btn btn-primary">
               Rejoindre
             </a>
           </nav>
@@ -43,7 +39,7 @@ export default async function Home() {
         <section className="hero" style={{ paddingBottom: 0 }}>
           <div>
             <h1>
-              Ce que la terre <em>donne</em>, directement dans vos mains.
+              La vie commence <em>ici</em>, avec nous.
             </h1>
             <p>
               Noyo relie les producteurs haïtiens aux acheteurs, sans détour.
@@ -51,10 +47,10 @@ export default async function Home() {
               nom et le visage de la personne qui l&apos;a cultivé.
             </p>
             <div className="hero-actions">
-              <a href="#contact" className="btn btn-primary">
+              <a href="/inscription?profil=acheteur" className="btn btn-primary">
                 Je veux acheter
               </a>
-              <a href="#contact" className="btn btn-outline">
+              <a href="/inscription?profil=fournisseur" className="btn btn-outline">
                 Je suis producteur
               </a>
             </div>
@@ -98,32 +94,23 @@ export default async function Home() {
           </p>
         </section>
 
-        <section id="comment">
-          <h2 className="section-heading">Comment ça marche</h2>
+        <section id="fournisseurs">
+          <h2 className="section-heading">Nos fournisseurs</h2>
           <div className="steps">
             <div className="step">
               <span className="num">01</span>
-              <h3>Circulation directe</h3>
-              <p>
-                Le produit va du producteur à l&apos;acheteur avec un seul
-                intermédiaire, Noyo, qui organise la mise en relation.
-              </p>
+              <h3>Fanfan Dame-Marie</h3>
+              <p>Producteur partenaire, exemple de fournisseur Noyo.</p>
             </div>
             <div className="step">
               <span className="num">02</span>
-              <h3>Prix selon la livraison</h3>
-              <p>
-                Le prix affiché dépend de l&apos;endroit où se trouve
-                l&apos;acheteuse, pour refléter le coût réel du trajet.
-              </p>
+              <h3>Henry Cacao</h3>
+              <p>Producteur partenaire, exemple de fournisseur Noyo.</p>
             </div>
             <div className="step">
               <span className="num">03</span>
-              <h3>Accès par invitation</h3>
-              <p>
-                Naviguer sur Noyo ne demande pas de compte. Voir les prix
-                demande une invitation.
-              </p>
+              <h3>Neuf Vodou</h3>
+              <p>Producteur partenaire, exemple de fournisseur Noyo.</p>
             </div>
           </div>
         </section>
@@ -132,33 +119,7 @@ export default async function Home() {
       <section id="produits" className="produits-band">
         <div className="wrap">
           <h2 className="section-heading">Les produits du carnet</h2>
-          {!produits || produits.length === 0 ? (
-            <p className="produits-empty">
-              Les premiers produits arrivent bientôt.
-            </p>
-          ) : (
-            <div className="produits-grid">
-              {(produits as Produit[]).map((p) => (
-                <div className="produit" key={p.id}>
-                  {p.image_url && (
-                    <div className="produit-photo">
-                      <Image
-                        src={p.image_url}
-                        alt={p.nom}
-                        fill
-                        sizes="(max-width: 860px) 50vw, 25vw"
-                        style={{ objectFit: "cover" }}
-                      />
-                    </div>
-                  )}
-                  <span className="fr">{p.nom}</span>
-                  {p.description && (
-                    <span className="kr">{p.description}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+          <ProduitsCatalogue produits={(produits as Produit[]) ?? []} />
         </div>
       </section>
 
@@ -192,24 +153,33 @@ export default async function Home() {
               </a>
             </div>
             <form className="contact-form">
-              <input type="text" name="nom" placeholder="Nom" required />
-              <input
-                type="tel"
-                name="telephone"
-                placeholder="Téléphone"
-                required
-              />
-              <select name="profil" defaultValue="">
-                <option value="" disabled>
-                  Je suis...
-                </option>
-                <option value="acheteur">Acheteur</option>
-                <option value="producteur">Producteur</option>
-              </select>
-              <textarea
-                name="message"
-                placeholder="Votre message"
-              ></textarea>
+              <label>
+                Nom
+                <input type="text" name="nom" placeholder="Votre nom" required />
+              </label>
+              <label>
+                Téléphone
+                <input
+                  type="tel"
+                  name="telephone"
+                  placeholder="Votre numéro"
+                  required
+                />
+              </label>
+              <label>
+                Je suis...
+                <select name="profil" defaultValue="">
+                  <option value="" disabled>
+                    Choisir un profil
+                  </option>
+                  <option value="acheteur">Acheteur</option>
+                  <option value="producteur">Producteur</option>
+                </select>
+              </label>
+              <label>
+                Message
+                <textarea name="message" placeholder="Votre message"></textarea>
+              </label>
               <button type="submit" className="btn btn-primary">
                 Envoyer
               </button>
@@ -218,7 +188,12 @@ export default async function Home() {
         </section>
 
         <footer className="site-footer">
-          <span>noyo — la vie commence ici, avec nous</span>
+          <div>
+            <span>noyo — la vie commence ici, avec nous</span>
+            <span className="credit">
+              Créé par SteFi Services, Créateur Web et Solutions Digitales.
+            </span>
+          </div>
           <span>
             <a href="/mentions-legales">Mentions légales</a> ·{" "}
             © {new Date().getFullYear()}
