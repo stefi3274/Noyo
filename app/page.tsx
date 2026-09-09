@@ -1,12 +1,34 @@
-export default function Home() {
+import Image from "next/image";
+import { supabaseServer } from "@/lib/supabase-server";
+
+type Produit = {
+  id: string;
+  nom: string;
+  description: string | null;
+  image_url: string | null;
+};
+
+export default async function Home() {
+  const { data: produits } = await supabaseServer
+    .from("produits")
+    .select("id, nom, description, image_url")
+    .order("created_at", { ascending: false });
+
   return (
     <>
       <div className="wrap">
         <header className="site-header">
-          <a href="/" className="wordmark">
-            noyo
+          <a href="/" className="logo-link">
+            <Image
+              src="/logo-noyo.jpg"
+              alt="Noyo — la vie commence ici, avec nous"
+              width={140}
+              height={114}
+              priority
+            />
           </a>
           <nav className="site-nav">
+            <a href="#apropos">À propos</a>
             <a href="#produits">Produits</a>
             <a href="#comment">Comment ça marche</a>
             <a href="#contact">Contact</a>
@@ -61,6 +83,19 @@ export default function Home() {
       </div>
 
       <div className="wrap">
+        <section id="apropos" className="apropos">
+          <h2 className="section-heading">À propos de Noyo</h2>
+          <p>
+            Noyo est une structure spécialisée dans l&apos;achat, la
+            transformation et la vente de produits naturels.
+          </p>
+          <p>
+            C&apos;est aussi un intermédiaire entre les producteurs et les
+            personnes désirant se procurer des produits naturels bio sur
+            tout le territoire haïtien.
+          </p>
+        </section>
+
         <section id="comment">
           <h2 className="section-heading">Comment ça marche</h2>
           <div className="steps">
@@ -95,27 +130,33 @@ export default function Home() {
       <section id="produits" className="produits-band">
         <div className="wrap">
           <h2 className="section-heading">Les produits du carnet</h2>
-          <div className="produits-grid">
-            {[
-              ["Cacao", "kakawo"],
-              ["Café", "kafe"],
-              ["Pistache", "pistach"],
-              ["Patate douce", "patat"],
-              ["Banane", "bannann"],
-              ["Noix", "nwa"],
-              ["Pois", "pwa"],
-              ["Igname", "yanm"],
-              ["Poisson", "pwason"],
-              ["Gingembre", "jenjanm"],
-              ["Noix de coco", "kokoye"],
-              ["Beurre", "bè"],
-            ].map(([fr, kr]) => (
-              <div className="produit" key={fr}>
-                <span className="fr">{fr}</span>
-                <span className="kr">{kr}</span>
-              </div>
-            ))}
-          </div>
+          {!produits || produits.length === 0 ? (
+            <p className="produits-empty">
+              Les premiers produits arrivent bientôt.
+            </p>
+          ) : (
+            <div className="produits-grid">
+              {(produits as Produit[]).map((p) => (
+                <div className="produit" key={p.id}>
+                  {p.image_url && (
+                    <div className="produit-photo">
+                      <Image
+                        src={p.image_url}
+                        alt={p.nom}
+                        fill
+                        sizes="(max-width: 860px) 50vw, 25vw"
+                        style={{ objectFit: "cover" }}
+                      />
+                    </div>
+                  )}
+                  <span className="fr">{p.nom}</span>
+                  {p.description && (
+                    <span className="kr">{p.description}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -141,7 +182,7 @@ export default function Home() {
               </p>
               <a
                 className="whatsapp-btn"
-                href="https://wa.me/50936281876"
+                href="https://wa.me/50934202031"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -176,7 +217,10 @@ export default function Home() {
 
         <footer className="site-footer">
           <span>noyo — la vie commence ici, avec nous</span>
-          <span>© {new Date().getFullYear()}</span>
+          <span>
+            <a href="/mentions-legales">Mentions légales</a> ·{" "}
+            © {new Date().getFullYear()}
+          </span>
         </footer>
       </div>
     </>

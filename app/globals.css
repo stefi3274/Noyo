@@ -56,6 +56,16 @@ a {
   letter-spacing: -0.01em;
 }
 
+.logo-link {
+  display: block;
+  line-height: 0;
+}
+
+.logo-link img {
+  height: 64px;
+  width: auto;
+}
+
 .site-nav {
   display: flex;
   align-items: center;
@@ -181,6 +191,15 @@ section {
   margin: 0 0 40px;
 }
 
+/* A propos */
+
+.apropos p {
+  max-width: 60ch;
+  font-size: 1.05rem;
+  color: #4a463c;
+  margin: 0 0 16px;
+}
+
 /* Comment ca marche */
 
 .steps {
@@ -241,6 +260,21 @@ section {
 .produit {
   background: var(--green);
   padding: 20px 18px;
+  font-size: 0.98rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.produit-photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  margin-bottom: 14px;
+  background: rgba(242, 236, 221, 0.12);
+}
+
+.produits-empty {
+  color: var(--beige-deep);
   font-size: 0.98rem;
 }
 
@@ -340,6 +374,123 @@ form.contact-form {
   font-size: 0.85rem;
   color: #6b6656;
   border-top: 1px solid var(--beige-deep);
+}
+
+/* Mentions legales */
+
+.legal {
+  padding: 56px 0 80px;
+  max-width: 720px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 32px;
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: var(--green);
+}
+
+.legal h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 2rem;
+  margin: 0 0 32px;
+}
+
+.legal h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 500;
+  margin: 32px 0 8px;
+  color: var(--green);
+}
+
+.legal p {
+  color: #4a463c;
+  font-size: 0.98rem;
+  margin: 0 0 8px;
+}
+
+/* Admin */
+
+.admin-auth {
+  max-width: 420px;
+  padding: 56px 0 80px;
+}
+
+.admin-auth h1,
+.admin-dashboard h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.8rem;
+  margin: 0 0 24px;
+}
+
+.admin-form {
+  max-width: 420px;
+}
+
+.admin-error {
+  color: var(--clay);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.admin-dashboard {
+  padding: 40px 0 80px;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.admin-list {
+  list-style: none;
+  margin: 32px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--beige-deep);
+  border: 1px solid var(--beige-deep);
+}
+
+.admin-list-item {
+  background: #fffdf7;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+}
+
+.admin-list-item img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.admin-list-item div {
+  flex: 1;
+}
+
+.admin-list-item p {
+  margin: 2px 0 0;
+  font-size: 0.88rem;
+  color: #6b6656;
+}
+
+.admin-delete {
+  background: transparent;
+  border: 1px solid var(--clay);
+  color: var(--clay);
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
 }
 
 /* Responsive */
