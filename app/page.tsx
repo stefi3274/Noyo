@@ -1,8 +1,10 @@
-import Image from "next/image";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import ProduitsCatalogue, {
   type Produit,
 } from "@/app/components/ProduitsCatalogue";
+import SiteHeader from "@/app/components/SiteHeader";
+import ScrollReveal from "@/app/components/ScrollReveal";
+import StatsBar from "@/app/components/StatsBar";
 
 export const dynamic = "force-dynamic";
 
@@ -12,29 +14,17 @@ export default async function Home() {
     .select("id, nom, description, image_url, categorie")
     .order("created_at", { ascending: false });
 
+  const liste = (produits as Produit[]) ?? [];
+  const categoriesCount = new Set(
+    liste.map((p) => p.categorie).filter(Boolean)
+  ).size;
+
   return (
     <>
+      <ScrollReveal />
+
       <div className="wrap">
-        <header className="site-header">
-          <a href="/" className="logo-link">
-            <Image
-              src="/logo-noyo.jpg"
-              alt="Noyo — la vie commence ici, avec nous"
-              width={160}
-              height={130}
-              priority
-            />
-          </a>
-          <nav className="site-nav">
-            <a href="#apropos">À propos</a>
-            <a href="#produits">Produits</a>
-            <a href="#fournisseurs">Nos fournisseurs</a>
-            <a href="#contact">Contact</a>
-            <a href="/inscription" className="btn btn-primary">
-              Rejoindre
-            </a>
-          </nav>
-        </header>
+        <SiteHeader />
 
         <section className="hero" style={{ paddingBottom: 0 }}>
           <div>
@@ -56,32 +46,53 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="ledger">
-            <p className="ledger-title">Carnet du jour</p>
-            <ul>
-              <li>
-                <span>Cacao</span> <span className="kreyol">kakawo</span>
-              </li>
-              <li>
-                <span>Café</span> <span className="kreyol">kafe</span>
-              </li>
-              <li>
-                <span>Pistache</span> <span className="kreyol">pistach</span>
-              </li>
-              <li>
-                <span>Igname</span> <span className="kreyol">yanm</span>
-              </li>
-              <li>
-                <span>Gingembre</span>{" "}
-                <span className="kreyol">jenjanm</span>
-              </li>
-            </ul>
+          <div className="hero-visuel">
+            <svg
+              className="hero-blob"
+              viewBox="0 0 400 400"
+              aria-hidden="true"
+            >
+              <path
+                fill="#6b8a56"
+                d="M320,60 C370,110 380,190 350,260 C320,330 240,370 170,350 C100,330 40,270 30,200 C20,130 60,50 130,30 C200,10 270,10 320,60 Z"
+                opacity="0.35"
+              />
+              <path
+                fill="#b5652b"
+                d="M300,140 C330,180 320,240 280,270 C240,300 170,300 130,270 C90,240 70,180 90,140 C110,100 160,80 210,80 C260,80 270,100 300,140 Z"
+                opacity="0.25"
+              />
+            </svg>
+            <div className="ledger">
+              <p className="ledger-title">Carnet du jour</p>
+              <ul>
+                <li>
+                  <span>Cacao</span> <span className="kreyol">kakawo</span>
+                </li>
+                <li>
+                  <span>Café</span> <span className="kreyol">kafe</span>
+                </li>
+                <li>
+                  <span>Pistache</span>{" "}
+                  <span className="kreyol">pistach</span>
+                </li>
+                <li>
+                  <span>Igname</span> <span className="kreyol">yanm</span>
+                </li>
+                <li>
+                  <span>Gingembre</span>{" "}
+                  <span className="kreyol">jenjanm</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </section>
+
+        <StatsBar produitsCount={liste.length} categoriesCount={categoriesCount} />
       </div>
 
       <div className="wrap">
-        <section id="apropos" className="apropos">
+        <section id="apropos" className="apropos reveal">
           <h2 className="section-heading">À propos de Noyo</h2>
           <p>
             Noyo est une structure spécialisée dans l&apos;achat, la
@@ -94,7 +105,7 @@ export default async function Home() {
           </p>
         </section>
 
-        <section id="fournisseurs">
+        <section id="fournisseurs" className="reveal">
           <h2 className="section-heading">Nos fournisseurs</h2>
           <div className="steps">
             <div className="step">
@@ -116,15 +127,15 @@ export default async function Home() {
         </section>
       </div>
 
-      <section id="produits" className="produits-band">
+      <section id="produits" className="produits-band reveal">
         <div className="wrap">
           <h2 className="section-heading">Les produits du carnet</h2>
-          <ProduitsCatalogue produits={(produits as Produit[]) ?? []} />
+          <ProduitsCatalogue produits={liste} />
         </div>
       </section>
 
       <div className="wrap">
-        <section className="acces">
+        <section className="acces reveal">
           <h2 className="section-heading" style={{ marginBottom: 16 }}>
             Un accès pensé pour la confiance
           </h2>
@@ -135,7 +146,7 @@ export default async function Home() {
           </p>
         </section>
 
-        <section id="contact">
+        <section id="contact" className="reveal">
           <div className="contact">
             <div className="contact-copy">
               <h2>Parlons-en</h2>
