@@ -7,6 +7,7 @@ import SiteHeader from "@/app/components/SiteHeader";
 import ScrollReveal from "@/app/components/ScrollReveal";
 import StatsBar from "@/app/components/StatsBar";
 import ContactForm from "@/app/components/ContactForm";
+import CommandeForm from "@/app/components/CommandeForm";
 
 export const dynamic = "force-dynamic";
 
@@ -168,12 +169,14 @@ export default async function Home() {
               Placer une commande
             </h2>
             <p className="acces-kreyol">Plase kòmand ou.</p>
+            <p className="acces-note">
+              Remplis le formulaire pour passer ta commande directement sur
+              le site : on te recontacte pour la confirmer et organiser la
+              livraison. Pour une question avant de commander, écris-nous
+              plutôt sur WhatsApp.
+            </p>
           </div>
-          <p className="acces-note">
-            Écris-nous directement sur WhatsApp avec les produits qui
-            t&apos;intéressent, ou remplis le formulaire ci-dessous : on te
-            recontacte pour organiser la commande.
-          </p>
+          <CommandeForm />
         </section>
 
         <section id="contact" className="reveal">

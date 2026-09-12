@@ -38,6 +38,16 @@ type Message = {
   traite: boolean;
 };
 
+type Commande = {
+  id: string;
+  nom: string;
+  telephone: string;
+  localisation: string | null;
+  produits: string;
+  created_at: string;
+  traite: boolean;
+};
+
 const PROFIL_LABELS: Record<string, string> = {
   acheteur: "Acheteur",
   vendeur: "Vendeur",
@@ -69,6 +79,9 @@ export default function AdminDashboard() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [voirMessagesTraites, setVoirMessagesTraites] = useState(false);
+
+  const [commandes, setCommandes] = useState<Commande[]>([]);
+  const [voirCommandesTraitees, setVoirCommandesTraitees] = useState(false);
 
   const loadProduits = useCallback(async () => {
     const { data } = await supabase
@@ -105,6 +118,14 @@ export default function AdminDashboard() {
     setMessages((data as Message[]) ?? []);
   }, [supabase]);
 
+  const loadCommandes = useCallback(async () => {
+    const { data } = await supabase
+      .from("commandes")
+      .select("id, nom, telephone, localisation, produits, created_at, traite")
+      .order("created_at", { ascending: false });
+    setCommandes((data as Commande[]) ?? []);
+  }, [supabase]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
@@ -116,8 +137,16 @@ export default function AdminDashboard() {
       loadHero();
       loadInscriptions();
       loadMessages();
+      loadCommandes();
     });
-  }, [router, loadProduits, loadHero, loadInscriptions, loadMessages]);
+  }, [
+    router,
+    loadProduits,
+    loadHero,
+    loadInscriptions,
+    loadMessages,
+    loadCommandes,
+  ]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -261,6 +290,18 @@ export default function AdminDashboard() {
   async function handleDeleteMessage(id: string) {
     setMessages((prev) => prev.filter((m) => m.id !== id));
     await supabase.from("messages").delete().eq("id", id);
+  }
+
+  async function handleToggleCommandeTraite(id: string, traite: boolean) {
+    setCommandes((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, traite: !traite } : c))
+    );
+    await supabase.from("commandes").update({ traite: !traite }).eq("id", id);
+  }
+
+  async function handleDeleteCommande(id: string) {
+    setCommandes((prev) => prev.filter((c) => c.id !== id));
+    await supabase.from("commandes").delete().eq("id", id);
   }
 
   async function handleLogout() {
@@ -428,6 +469,79 @@ export default function AdminDashboard() {
                   </label>
                   <button
                     onClick={() => handleDeleteMessage(m.id)}
+                    className="admin-delete"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </li>
+            ))}
+        </ul>
+      )}
+
+      <div className="admin-section-header" style={{ marginTop: 56 }}>
+        <h1>
+          Commandes
+          {commandes.some((c) => !c.traite) && (
+            <span className="admin-badge-count">
+              {commandes.filter((c) => !c.traite).length} nouvelle
+              {commandes.filter((c) => !c.traite).length > 1 ? "s" : ""}
+            </span>
+          )}
+        </h1>
+        <label className="admin-toggle-traitees">
+          <input
+            type="checkbox"
+            checked={voirCommandesTraitees}
+            onChange={(e) => setVoirCommandesTraitees(e.target.checked)}
+          />
+          Afficher les commandes déjà traitées
+        </label>
+      </div>
+
+      {commandes.filter((c) => voirCommandesTraitees || !c.traite).length ===
+      0 ? (
+        <p className="admin-hint">Aucune commande pour le moment.</p>
+      ) : (
+        <ul className="admin-list admin-list-inscriptions">
+          {commandes
+            .filter((c) => voirCommandesTraitees || !c.traite)
+            .map((c) => (
+              <li
+                key={c.id}
+                className={`admin-inscription-item ${
+                  c.traite ? "is-traitee" : ""
+                }`}
+              >
+                <div className="admin-inscription-corps">
+                  <div className="admin-inscription-entete">
+                    <strong>{c.nom}</strong>
+                    <span className="admin-inscription-date">
+                      {new Date(c.created_at).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  <p className="admin-inscription-contact">
+                    {c.telephone}
+                    {c.localisation ? ` · ${c.localisation}` : ""}
+                  </p>
+                  <p className="admin-inscription-details">{c.produits}</p>
+                </div>
+                <div className="admin-list-actions">
+                  <label className="admin-toggle-traite">
+                    <input
+                      type="checkbox"
+                      checked={c.traite}
+                      onChange={() => handleToggleCommandeTraite(c.id, c.traite)}
+                    />
+                    Traité
+                  </label>
+                  <button
+                    onClick={() => handleDeleteCommande(c.id)}
                     className="admin-delete"
                   >
                     Supprimer
