@@ -20,8 +20,12 @@ export default function SiteHeader() {
       <a href="#contact" onClick={() => setOpen(false)}>
         Contact
       </a>
-      <a href="/inscription" className="btn btn-primary" onClick={() => setOpen(false)}>
-        Rejoindre
+      <a
+        href="/inscription"
+        className="nav-cta"
+        onClick={() => setOpen(false)}
+      >
+        Rejoindre <span className="nav-cta-arrow">→</span>
       </a>
     </>
   );

@@ -6,6 +6,7 @@ import ProduitsCatalogue, {
 import SiteHeader from "@/app/components/SiteHeader";
 import ScrollReveal from "@/app/components/ScrollReveal";
 import StatsBar from "@/app/components/StatsBar";
+import ContactForm from "@/app/components/ContactForm";
 
 export const dynamic = "force-dynamic";
 
@@ -162,13 +163,16 @@ export default async function Home() {
 
       <div className="wrap">
         <section className="acces reveal">
-          <h2 className="section-heading" style={{ marginBottom: 16 }}>
-            Un accès pensé pour la confiance
-          </h2>
+          <div>
+            <h2 className="section-heading" style={{ marginBottom: 6 }}>
+              Placer une commande
+            </h2>
+            <p className="acces-kreyol">Plase kòmand ou.</p>
+          </div>
           <p className="acces-note">
-            Aucun compte n&apos;est requis pour parcourir Noyo. Mais voir un
-            prix demande une invitation : c&apos;est ce qui garde chaque
-            échange sérieux, des deux côtés.
+            Écris-nous directement sur WhatsApp avec les produits qui
+            t&apos;intéressent, ou remplis le formulaire ci-dessous : on te
+            recontacte pour organiser la commande.
           </p>
         </section>
 
@@ -189,38 +193,7 @@ export default async function Home() {
                 Écrire sur WhatsApp
               </a>
             </div>
-            <form className="contact-form">
-              <label>
-                Nom
-                <input type="text" name="nom" placeholder="Votre nom" required />
-              </label>
-              <label>
-                Téléphone
-                <input
-                  type="tel"
-                  name="telephone"
-                  placeholder="Votre numéro"
-                  required
-                />
-              </label>
-              <label>
-                Je suis...
-                <select name="profil" defaultValue="">
-                  <option value="" disabled>
-                    Choisir un profil
-                  </option>
-                  <option value="acheteur">Acheteur</option>
-                  <option value="producteur">Producteur</option>
-                </select>
-              </label>
-              <label>
-                Message
-                <textarea name="message" placeholder="Votre message"></textarea>
-              </label>
-              <button type="submit" className="btn btn-primary">
-                Envoyer
-              </button>
-            </form>
+            <ContactForm />
           </div>
         </section>
 

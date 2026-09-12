@@ -18,9 +18,17 @@ const workSans = Work_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://noyo.vercel.app"),
   title: "Noyo — La vie commence ici, avec nous",
   description:
     "Noyo met en relation les producteurs haïtiens et les acheteurs, directement, sans intermédiaire caché.",
+  openGraph: {
+    title: "Noyo — La vie commence ici, avec nous",
+    description:
+      "Noyo met en relation les producteurs haïtiens et les acheteurs, directement, sans intermédiaire caché.",
+    locale: "fr_HT",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

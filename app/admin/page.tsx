@@ -16,6 +16,24 @@ type Produit = {
   categorie: string | null;
 };
 
+type Inscription = {
+  id: string;
+  profil: string;
+  nom: string;
+  telephone: string;
+  email: string | null;
+  localisation: string | null;
+  details: string | null;
+  created_at: string;
+  traite: boolean;
+};
+
+const PROFIL_LABELS: Record<string, string> = {
+  acheteur: "Acheteur",
+  vendeur: "Vendeur",
+  fournisseur: "Fournisseur",
+};
+
 export default function AdminDashboard() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabase(), []);
@@ -30,10 +48,14 @@ export default function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
   const [heroFile, setHeroFile] = useState<File | null>(null);
   const [heroSaving, setHeroSaving] = useState(false);
   const [heroError, setHeroError] = useState<string | null>(null);
+
+  const [inscriptions, setInscriptions] = useState<Inscription[]>([]);
+  const [voirTraitees, setVoirTraitees] = useState(false);
 
   const loadProduits = useCallback(async () => {
     const { data } = await supabase
@@ -52,6 +74,16 @@ export default function AdminDashboard() {
     setHeroImageUrl(data?.hero_image_url ?? null);
   }, [supabase]);
 
+  const loadInscriptions = useCallback(async () => {
+    const { data } = await supabase
+      .from("inscriptions")
+      .select(
+        "id, profil, nom, telephone, email, localisation, details, created_at, traite"
+      )
+      .order("created_at", { ascending: false });
+    setInscriptions((data as Inscription[]) ?? []);
+  }, [supabase]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
@@ -61,8 +93,9 @@ export default function AdminDashboard() {
       setSession(data.session);
       loadProduits();
       loadHero();
+      loadInscriptions();
     });
-  }, [router, loadProduits, loadHero]);
+  }, [router, loadProduits, loadHero, loadInscriptions]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -70,7 +103,10 @@ export default function AdminDashboard() {
     setSaving(true);
 
     try {
-      let image_url: string | null = null;
+      let image_url: string | null =
+        (editingId &&
+          produits.find((p) => p.id === editingId)?.image_url) ||
+        null;
 
       if (file) {
         const path = `${Date.now()}-${file.name}`;
@@ -86,26 +122,62 @@ export default function AdminDashboard() {
         image_url = data.publicUrl;
       }
 
-      const { error: insertError } = await supabase
-        .from("produits")
-        .insert({ nom, description, categorie: categorie || null, image_url });
+      if (editingId) {
+        const { error: updateError } = await supabase
+          .from("produits")
+          .update({ nom, description, categorie: categorie || null, image_url })
+          .eq("id", editingId);
 
-      if (insertError) throw insertError;
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from("produits")
+          .insert({ nom, description, categorie: categorie || null, image_url });
+
+        if (insertError) throw insertError;
+      }
 
       setNom("");
       setDescription("");
       setCategorie("");
       setFile(null);
+      setEditingId(null);
       await loadProduits();
     } catch (err) {
-      setError("Impossible d'ajouter le produit. Réessaie.");
+      setError(
+        editingId
+          ? "Impossible d'enregistrer les modifications. Réessaie."
+          : "Impossible d'ajouter le produit. Réessaie."
+      );
     } finally {
       setSaving(false);
     }
   }
 
+  function handleEdit(p: Produit) {
+    setEditingId(p.id);
+    setNom(p.nom);
+    setDescription(p.description ?? "");
+    setCategorie(p.categorie ?? "");
+    setFile(null);
+    setError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null);
+    setNom("");
+    setDescription("");
+    setCategorie("");
+    setFile(null);
+    setError(null);
+  }
+
   async function handleDelete(id: string) {
     await supabase.from("produits").delete().eq("id", id);
+    if (editingId === id) {
+      handleCancelEdit();
+    }
     await loadProduits();
   }
 
@@ -145,6 +217,18 @@ export default function AdminDashboard() {
     await loadHero();
   }
 
+  async function handleToggleTraite(id: string, traite: boolean) {
+    setInscriptions((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, traite: !traite } : i))
+    );
+    await supabase.from("inscriptions").update({ traite: !traite }).eq("id", id);
+  }
+
+  async function handleDeleteInscription(id: string) {
+    setInscriptions((prev) => prev.filter((i) => i.id !== id));
+    await supabase.from("inscriptions").delete().eq("id", id);
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push("/admin/login");
@@ -165,7 +249,85 @@ export default function AdminDashboard() {
         </button>
       </header>
 
-      <h1>Photo du hero</h1>
+      <div className="admin-section-header">
+        <h1>
+          Inscriptions
+          {inscriptions.some((i) => !i.traite) && (
+            <span className="admin-badge-count">
+              {inscriptions.filter((i) => !i.traite).length} nouvelle
+              {inscriptions.filter((i) => !i.traite).length > 1 ? "s" : ""}
+            </span>
+          )}
+        </h1>
+        <label className="admin-toggle-traitees">
+          <input
+            type="checkbox"
+            checked={voirTraitees}
+            onChange={(e) => setVoirTraitees(e.target.checked)}
+          />
+          Afficher les inscriptions déjà traitées
+        </label>
+      </div>
+
+      {inscriptions.filter((i) => voirTraitees || !i.traite).length === 0 ? (
+        <p className="admin-hint">Aucune inscription pour le moment.</p>
+      ) : (
+        <ul className="admin-list admin-list-inscriptions">
+          {inscriptions
+            .filter((i) => voirTraitees || !i.traite)
+            .map((i) => (
+              <li
+                key={i.id}
+                className={`admin-inscription-item ${
+                  i.traite ? "is-traitee" : ""
+                }`}
+              >
+                <div className="admin-inscription-corps">
+                  <div className="admin-inscription-entete">
+                    <span className="admin-tag">
+                      {PROFIL_LABELS[i.profil] ?? i.profil}
+                    </span>
+                    <strong>{i.nom}</strong>
+                    <span className="admin-inscription-date">
+                      {new Date(i.created_at).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  <p className="admin-inscription-contact">
+                    {i.telephone}
+                    {i.email ? ` · ${i.email}` : ""}
+                    {i.localisation ? ` · ${i.localisation}` : ""}
+                  </p>
+                  {i.details && (
+                    <p className="admin-inscription-details">{i.details}</p>
+                  )}
+                </div>
+                <div className="admin-list-actions">
+                  <label className="admin-toggle-traite">
+                    <input
+                      type="checkbox"
+                      checked={i.traite}
+                      onChange={() => handleToggleTraite(i.id, i.traite)}
+                    />
+                    Traité
+                  </label>
+                  <button
+                    onClick={() => handleDeleteInscription(i.id)}
+                    className="admin-delete"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </li>
+            ))}
+        </ul>
+      )}
+
+      <h1 style={{ marginTop: 56 }}>Photo du hero</h1>
 
       {heroImageUrl && (
         <div className="hero-preview">
@@ -193,7 +355,9 @@ export default function AdminDashboard() {
         </button>
       </form>
 
-      <h1 style={{ marginTop: 56 }}>Produits</h1>
+      <h1 style={{ marginTop: 56 }}>
+        {editingId ? "Modifier le produit" : "Produits"}
+      </h1>
 
       <form onSubmit={handleAdd} className="contact-form admin-form">
         <input
@@ -219,15 +383,35 @@ export default function AdminDashboard() {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+        {editingId && (
+          <p className="admin-hint">
+            Laisse le champ photo vide pour garder la photo actuelle.
+          </p>
+        )}
         <input
           type="file"
           accept="image/*"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
         {error && <p className="admin-error">{error}</p>}
-        <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? "Ajout..." : "Ajouter le produit"}
-        </button>
+        <div className="admin-form-actions">
+          <button type="submit" className="btn btn-primary" disabled={saving}>
+            {saving
+              ? "Enregistrement..."
+              : editingId
+              ? "Enregistrer les modifications"
+              : "Ajouter le produit"}
+          </button>
+          {editingId && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={handleCancelEdit}
+            >
+              Annuler
+            </button>
+          )}
+        </div>
       </form>
 
       <ul className="admin-list">
@@ -242,12 +426,20 @@ export default function AdminDashboard() {
               {p.categorie && <span className="admin-tag">{p.categorie}</span>}
               {p.description && <p>{p.description}</p>}
             </div>
-            <button
-              onClick={() => handleDelete(p.id)}
-              className="admin-delete"
-            >
+            <div className="admin-list-actions">
+              <button
+                onClick={() => handleEdit(p)}
+                className="btn btn-outline"
+              >
+                Modifier
+              </button>
+              <button
+                onClick={() => handleDelete(p.id)}
+                className="admin-delete"
+              >
               Supprimer
-            </button>
+              </button>
+            </div>
           </li>
         ))}
       </ul>

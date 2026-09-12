@@ -25,10 +25,18 @@ export default function ProduitsCatalogue({
   }, [produits]);
 
   const [active, setActive] = useState<string | null>(null);
+  const [recherche, setRecherche] = useState("");
 
-  const filtered = active
-    ? produits.filter((p) => p.categorie === active)
-    : produits;
+  const filtered = produits.filter((p) => {
+    const matchCategorie = active ? p.categorie === active : true;
+    const matchRecherche = recherche
+      ? p.nom.toLowerCase().includes(recherche.trim().toLowerCase()) ||
+        (p.description ?? "")
+          .toLowerCase()
+          .includes(recherche.trim().toLowerCase())
+      : true;
+    return matchCategorie && matchRecherche;
+  });
 
   if (produits.length === 0) {
     return (
@@ -38,6 +46,15 @@ export default function ProduitsCatalogue({
 
   return (
     <>
+      <div className="produits-recherche">
+        <input
+          type="search"
+          placeholder="Rechercher un produit..."
+          value={recherche}
+          onChange={(e) => setRecherche(e.target.value)}
+        />
+      </div>
+
       {categories.length > 1 && (
         <div className="filtres">
           <button
@@ -59,6 +76,9 @@ export default function ProduitsCatalogue({
       )}
 
       <div className="catalogue-grid">
+        {filtered.length === 0 && (
+          <p className="produits-empty">Aucun produit ne correspond à ta recherche.</p>
+        )}
         {filtered.map((p) => (
           <article className="carte-produit" key={p.id}>
             <div className="carte-produit-photo">
