@@ -28,6 +28,7 @@ export default function ContactForm() {
     setSaving(false);
 
     if (error) {
+      console.error("Erreur Supabase (messages):", error);
       setError("L'envoi a échoué. Réessaie dans un instant.");
       return;
     }
