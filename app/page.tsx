@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import ProduitsCatalogue, {
   type Produit,
@@ -9,11 +10,20 @@ import StatsBar from "@/app/components/StatsBar";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const { data: produits } = await getSupabaseServer()
+  const supabase = getSupabaseServer();
+
+  const { data: produits } = await supabase
     .from("produits")
     .select("id, nom, description, image_url, categorie")
     .order("created_at", { ascending: false });
 
+  const { data: parametres } = await supabase
+    .from("parametres")
+    .select("hero_image_url")
+    .eq("id", 1)
+    .maybeSingle();
+
+  const heroImageUrl = parametres?.hero_image_url ?? null;
   const liste = (produits as Produit[]) ?? [];
   const categoriesCount = new Set(
     liste.map((p) => p.categorie).filter(Boolean)
@@ -40,8 +50,11 @@ export default async function Home() {
               <a href="/inscription?profil=acheteur" className="btn btn-primary">
                 Je veux acheter
               </a>
+              <a href="/inscription?profil=vendeur" className="btn btn-outline">
+                Je veux vendre
+              </a>
               <a href="/inscription?profil=fournisseur" className="btn btn-outline">
-                Je suis producteur
+                Je suis fournisseur
               </a>
             </div>
           </div>
@@ -63,28 +76,41 @@ export default async function Home() {
                 opacity="0.25"
               />
             </svg>
-            <div className="ledger">
-              <p className="ledger-title">Carnet du jour</p>
-              <ul>
-                <li>
-                  <span>Cacao</span> <span className="kreyol">kakawo</span>
-                </li>
-                <li>
-                  <span>Café</span> <span className="kreyol">kafe</span>
-                </li>
-                <li>
-                  <span>Pistache</span>{" "}
-                  <span className="kreyol">pistach</span>
-                </li>
-                <li>
-                  <span>Igname</span> <span className="kreyol">yanm</span>
-                </li>
-                <li>
-                  <span>Gingembre</span>{" "}
-                  <span className="kreyol">jenjanm</span>
-                </li>
-              </ul>
-            </div>
+            {heroImageUrl ? (
+              <div className="hero-photo">
+                <Image
+                  src={heroImageUrl}
+                  alt="Noyo"
+                  fill
+                  sizes="(max-width: 860px) 90vw, 40vw"
+                  style={{ objectFit: "cover" }}
+                  priority
+                />
+              </div>
+            ) : (
+              <div className="ledger">
+                <p className="ledger-title">Carnet du jour</p>
+                <ul>
+                  <li>
+                    <span>Cacao</span> <span className="kreyol">kakawo</span>
+                  </li>
+                  <li>
+                    <span>Café</span> <span className="kreyol">kafe</span>
+                  </li>
+                  <li>
+                    <span>Pistache</span>{" "}
+                    <span className="kreyol">pistach</span>
+                  </li>
+                  <li>
+                    <span>Igname</span> <span className="kreyol">yanm</span>
+                  </li>
+                  <li>
+                    <span>Gingembre</span>{" "}
+                    <span className="kreyol">jenjanm</span>
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
         </section>
 

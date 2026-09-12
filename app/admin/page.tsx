@@ -30,12 +30,26 @@ export default function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+  const [heroFile, setHeroFile] = useState<File | null>(null);
+  const [heroSaving, setHeroSaving] = useState(false);
+  const [heroError, setHeroError] = useState<string | null>(null);
+
   const loadProduits = useCallback(async () => {
     const { data } = await supabase
       .from("produits")
       .select("id, nom, description, image_url, categorie")
       .order("created_at", { ascending: false });
     setProduits((data as Produit[]) ?? []);
+  }, [supabase]);
+
+  const loadHero = useCallback(async () => {
+    const { data } = await supabase
+      .from("parametres")
+      .select("hero_image_url")
+      .eq("id", 1)
+      .maybeSingle();
+    setHeroImageUrl(data?.hero_image_url ?? null);
   }, [supabase]);
 
   useEffect(() => {
@@ -46,8 +60,9 @@ export default function AdminDashboard() {
       }
       setSession(data.session);
       loadProduits();
+      loadHero();
     });
-  }, [router, loadProduits]);
+  }, [router, loadProduits, loadHero]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -94,6 +109,42 @@ export default function AdminDashboard() {
     await loadProduits();
   }
 
+  async function handleHeroUpload(e: React.FormEvent) {
+    e.preventDefault();
+    if (!heroFile) return;
+    setHeroError(null);
+    setHeroSaving(true);
+
+    try {
+      const path = `hero-${Date.now()}-${heroFile.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("produits")
+        .upload(path, heroFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("produits").getPublicUrl(path);
+
+      const { error: upsertError } = await supabase
+        .from("parametres")
+        .upsert({ id: 1, hero_image_url: data.publicUrl });
+
+      if (upsertError) throw upsertError;
+
+      setHeroFile(null);
+      await loadHero();
+    } catch (err) {
+      setHeroError("Impossible d'enregistrer la photo. Réessaie.");
+    } finally {
+      setHeroSaving(false);
+    }
+  }
+
+  async function handleHeroRemove() {
+    await supabase.from("parametres").upsert({ id: 1, hero_image_url: null });
+    await loadHero();
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push("/admin/login");
@@ -114,7 +165,35 @@ export default function AdminDashboard() {
         </button>
       </header>
 
-      <h1>Produits</h1>
+      <h1>Photo du hero</h1>
+
+      {heroImageUrl && (
+        <div className="hero-preview">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={heroImageUrl} alt="Photo du hero actuelle" />
+          <button onClick={handleHeroRemove} className="admin-delete">
+            Retirer et revenir au visuel par défaut
+          </button>
+        </div>
+      )}
+
+      <form onSubmit={handleHeroUpload} className="contact-form admin-form">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setHeroFile(e.target.files?.[0] ?? null)}
+        />
+        {heroError && <p className="admin-error">{heroError}</p>}
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={heroSaving || !heroFile}
+        >
+          {heroSaving ? "Envoi..." : "Changer la photo du hero"}
+        </button>
+      </form>
+
+      <h1 style={{ marginTop: 56 }}>Produits</h1>
 
       <form onSubmit={handleAdd} className="contact-form admin-form">
         <input

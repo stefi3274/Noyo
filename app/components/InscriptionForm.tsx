@@ -4,9 +4,13 @@ import { useMemo, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 
 const PROFILS = [
-  { value: "acheteur", label: "Acheteur" },
-  { value: "vendeur", label: "Vendeur" },
-  { value: "fournisseur", label: "Fournisseur" },
+  { value: "acheteur", label: "Acheteur", titre: "Profil Acheteur" },
+  { value: "vendeur", label: "Vendeur", titre: "Profil Vendeur" },
+  {
+    value: "fournisseur",
+    label: "Fournisseur",
+    titre: "Profil Fournisseur",
+  },
 ];
 
 export default function InscriptionForm({
@@ -20,6 +24,8 @@ export default function InscriptionForm({
     : "acheteur";
 
   const [profil, setProfil] = useState(defaultProfil);
+  const titreActuel =
+    PROFILS.find((p) => p.value === profil)?.titre ?? "Profil";
   const [nom, setNom] = useState("");
   const [telephone, setTelephone] = useState("");
   const [email, setEmail] = useState("");
@@ -66,6 +72,8 @@ export default function InscriptionForm({
 
   return (
     <form onSubmit={handleSubmit} className="contact-form inscription-form">
+      <h2 className="inscription-role-titre">{titreActuel}</h2>
+
       <div className="profil-switch">
         {PROFILS.map((p) => (
           <button
