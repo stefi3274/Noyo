@@ -26,6 +26,13 @@ type Inscription = {
   details: string | null;
   created_at: string;
   traite: boolean;
+  type_commerce: string | null;
+  nom_commerce: string | null;
+  espace_production: string | null;
+  quantite_production: string | null;
+  productions: string | null;
+  conditions_culture: string | null;
+  photos: string[] | null;
 };
 
 type Message = {
@@ -104,7 +111,7 @@ export default function AdminDashboard() {
     const { data } = await supabase
       .from("inscriptions")
       .select(
-        "id, profil, nom, telephone, email, localisation, details, created_at, traite"
+        "id, profil, nom, telephone, email, localisation, details, created_at, traite, type_commerce, nom_commerce, espace_production, quantite_production, productions, conditions_culture, photos"
       )
       .order("created_at", { ascending: false });
     setInscriptions((data as Inscription[]) ?? []);
@@ -377,6 +384,46 @@ export default function AdminDashboard() {
                     {i.email ? ` · ${i.email}` : ""}
                     {i.localisation ? ` · ${i.localisation}` : ""}
                   </p>
+                  {i.profil === "acheteur" &&
+                    (i.type_commerce || i.nom_commerce) && (
+                      <p className="admin-inscription-contact">
+                        {i.type_commerce}
+                        {i.nom_commerce ? ` · ${i.nom_commerce}` : ""}
+                      </p>
+                    )}
+                  {(i.profil === "vendeur" || i.profil === "fournisseur") && (
+                    <div className="admin-inscription-production">
+                      {i.productions && (
+                        <p>
+                          <strong>Productions :</strong> {i.productions}
+                        </p>
+                      )}
+                      {i.espace_production && (
+                        <p>
+                          <strong>Espace :</strong> {i.espace_production}
+                        </p>
+                      )}
+                      {i.quantite_production && (
+                        <p>
+                          <strong>Quantité :</strong> {i.quantite_production}
+                        </p>
+                      )}
+                      {i.conditions_culture && (
+                        <p>
+                          <strong>Conditions de culture :</strong>{" "}
+                          {i.conditions_culture}
+                        </p>
+                      )}
+                      {i.photos && i.photos.length > 0 && (
+                        <div className="admin-inscription-photos">
+                          {i.photos.map((url) => (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img key={url} src={url} alt="Photo de l'exploitation" />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {i.details && (
                     <p className="admin-inscription-details">{i.details}</p>
                   )}

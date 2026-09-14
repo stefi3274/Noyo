@@ -9,7 +9,7 @@ export default function StatsBar({
     { valeur: "100%", label: "Origine haïtienne" },
     { valeur: String(produitsCount), label: "Produits disponibles" },
     { valeur: String(categoriesCount), label: "Catégories" },
-    { valeur: "Sur invitation", label: "Accès aux prix" },
+    { valeur: "Toute Haïti", label: "Livraison" },
   ];
 
   return (

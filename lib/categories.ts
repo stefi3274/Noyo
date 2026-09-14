@@ -7,4 +7,5 @@ export const CATEGORIES = [
   "Produits de la mer",
   "Épices",
   "Produits transformés",
+  "Graines & Huiles",
 ];

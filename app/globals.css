@@ -264,7 +264,7 @@ a {
   position: relative;
 }
 
-.hero-blob {
+.hero-splash {
   position: absolute;
   top: -40px;
   right: -30px;
@@ -955,6 +955,32 @@ form.contact-form {
   font-style: italic;
 }
 
+.admin-inscription-production {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #e7dcc0;
+}
+
+.admin-inscription-production p {
+  margin: 3px 0;
+  font-size: 0.88rem;
+  color: #4a463c;
+}
+
+.admin-inscription-photos {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.admin-inscription-photos img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
 .admin-tag {
   display: inline-block;
   margin-left: 10px;
@@ -985,7 +1011,7 @@ form.contact-form {
   .hero {
     grid-template-columns: 1fr;
   }
-  .hero-blob {
+  .hero-splash {
     display: none;
   }
   .steps {

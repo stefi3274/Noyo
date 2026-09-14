@@ -13,6 +13,16 @@ const PROFILS = [
   },
 ];
 
+const TYPES_COMMERCE = [
+  "Commerçant(e)",
+  "Transformateur / Transformatrice",
+  "Pâtisserie",
+  "Restaurant",
+  "Autre",
+];
+
+const MAX_PHOTOS = 4;
+
 export default function InscriptionForm({
   initialProfil,
 }: {
@@ -26,37 +36,83 @@ export default function InscriptionForm({
   const [profil, setProfil] = useState(defaultProfil);
   const titreActuel =
     PROFILS.find((p) => p.value === profil)?.titre ?? "Profil";
+  const estProducteur = profil === "vendeur" || profil === "fournisseur";
+
   const [nom, setNom] = useState("");
   const [telephone, setTelephone] = useState("");
   const [email, setEmail] = useState("");
   const [localisation, setLocalisation] = useState("");
   const [details, setDetails] = useState("");
+
+  // Profil Acheteur
+  const [typeCommerce, setTypeCommerce] = useState("");
+  const [nomCommerce, setNomCommerce] = useState("");
+
+  // Profils Vendeur / Fournisseur
+  const [espaceProduction, setEspaceProduction] = useState("");
+  const [quantiteProduction, setQuantiteProduction] = useState("");
+  const [productions, setProductions] = useState("");
+  const [conditionsCulture, setConditionsCulture] = useState("");
+  const [photos, setPhotos] = useState<File[]>([]);
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+
+  function handlePhotosChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const fichiers = Array.from(e.target.files ?? []).slice(0, MAX_PHOTOS);
+    setPhotos(fichiers);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setSaving(true);
 
-    const { error } = await supabase.from("inscriptions").insert({
-      profil,
-      nom,
-      telephone,
-      email: email || null,
-      localisation: localisation || null,
-      details: details || null,
-    });
+    try {
+      let photoUrls: string[] = [];
 
-    setSaving(false);
+      if (estProducteur && photos.length > 0) {
+        for (const fichier of photos) {
+          const path = `${Date.now()}-${fichier.name}`;
+          const { error: uploadError } = await supabase.storage
+            .from("inscriptions")
+            .upload(path, fichier);
 
-    if (error) {
+          if (uploadError) throw uploadError;
+
+          const { data } = supabase.storage
+            .from("inscriptions")
+            .getPublicUrl(path);
+          photoUrls.push(data.publicUrl);
+        }
+      }
+
+      const { error: insertError } = await supabase.from("inscriptions").insert({
+        profil,
+        nom,
+        telephone,
+        email: email || null,
+        localisation: localisation || null,
+        details: details || null,
+        type_commerce: profil === "acheteur" ? typeCommerce || null : null,
+        nom_commerce: profil === "acheteur" ? nomCommerce || null : null,
+        espace_production: estProducteur ? espaceProduction || null : null,
+        quantite_production: estProducteur ? quantiteProduction || null : null,
+        productions: estProducteur ? productions || null : null,
+        conditions_culture: estProducteur ? conditionsCulture || null : null,
+        photos: photoUrls.length > 0 ? photoUrls : null,
+      });
+
+      if (insertError) throw insertError;
+
+      setDone(true);
+    } catch (err) {
+      console.error("Erreur Supabase (inscriptions):", err);
       setError("L'envoi a échoué. Réessaie dans un instant.");
-      return;
+    } finally {
+      setSaving(false);
     }
-
-    setDone(true);
   }
 
   if (done) {
@@ -124,10 +180,93 @@ export default function InscriptionForm({
           onChange={(e) => setLocalisation(e.target.value)}
         />
       </label>
+
+      {profil === "acheteur" && (
+        <>
+          <label>
+            Type de commerce
+            <select
+              value={typeCommerce}
+              onChange={(e) => setTypeCommerce(e.target.value)}
+            >
+              <option value="">Choisir...</option>
+              {TYPES_COMMERCE.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Nom du commerce (optionnel)
+            <input
+              type="text"
+              value={nomCommerce}
+              onChange={(e) => setNomCommerce(e.target.value)}
+            />
+          </label>
+        </>
+      )}
+
+      {estProducteur && (
+        <>
+          <label>
+            Espace de production
+            <input
+              type="text"
+              placeholder="Ex : 2 carreaux de terre"
+              value={espaceProduction}
+              onChange={(e) => setEspaceProduction(e.target.value)}
+            />
+          </label>
+          <label>
+            Quantité de production
+            <input
+              type="text"
+              placeholder="Ex : 200 lb par récolte"
+              value={quantiteProduction}
+              onChange={(e) => setQuantiteProduction(e.target.value)}
+            />
+          </label>
+          <label>
+            Quelles productions ?
+            <input
+              type="text"
+              placeholder="Ex : Cacao, Café, Pistache"
+              value={productions}
+              onChange={(e) => setProductions(e.target.value)}
+            />
+          </label>
+          <label>
+            Conditions de culture
+            <textarea
+              placeholder="Méthode de culture, usage de produits naturels ou chimiques, saisonnalité..."
+              value={conditionsCulture}
+              onChange={(e) => setConditionsCulture(e.target.value)}
+            />
+          </label>
+          <label>
+            Photos de l&apos;exploitation (jusqu&apos;à {MAX_PHOTOS})
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handlePhotosChange}
+            />
+          </label>
+          {photos.length > 0 && (
+            <p className="admin-hint">
+              {photos.length} photo{photos.length > 1 ? "s" : ""}{" "}
+              sélectionnée{photos.length > 1 ? "s" : ""}.
+            </p>
+          )}
+        </>
+      )}
+
       <label>
         {profil === "acheteur"
           ? "Quels produits recherches-tu ?"
-          : "Quels produits proposes-tu ?"}
+          : "Autre chose à préciser ? (optionnel)"}
         <textarea
           value={details}
           onChange={(e) => setDetails(e.target.value)}

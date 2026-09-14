@@ -63,20 +63,59 @@ export default async function Home() {
 
           <div className="hero-visuel">
             <svg
-              className="hero-blob"
+              className="hero-splash"
               viewBox="0 0 400 400"
               aria-hidden="true"
             >
+              <defs>
+                <linearGradient id="splashVert" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#6b8a56" />
+                  <stop offset="100%" stopColor="#2f4a2b" />
+                </linearGradient>
+              </defs>
+
+              {/* Fond organique */}
+              <path
+                fill="url(#splashVert)"
+                opacity="0.16"
+                d="M320,60 C370,110 380,190 350,260 C320,330 240,370 170,350 C100,330 40,270 30,200 C20,130 60,50 130,30 C200,10 270,10 320,60 Z"
+              />
+
+              {/* Feuille stylisée */}
               <path
                 fill="#6b8a56"
-                d="M320,60 C370,110 380,190 350,260 C320,330 240,370 170,350 C100,330 40,270 30,200 C20,130 60,50 130,30 C200,10 270,10 320,60 Z"
-                opacity="0.35"
+                opacity="0.5"
+                d="M150,320 C110,290 100,230 130,180 C160,130 220,100 270,110 C260,170 240,220 200,260 C180,280 165,300 150,320 Z"
               />
               <path
-                fill="#b5652b"
-                d="M300,140 C330,180 320,240 280,270 C240,300 170,300 130,270 C90,240 70,180 90,140 C110,100 160,80 210,80 C260,80 270,100 300,140 Z"
-                opacity="0.25"
+                stroke="#f2ecdd"
+                strokeWidth="2"
+                fill="none"
+                opacity="0.6"
+                d="M150,320 C170,270 210,210 265,115"
               />
+
+              {/* Soleil, écho du logo */}
+              <g transform="translate(290,90)" opacity="0.85">
+                <circle r="20" fill="#b5652b" />
+                <g stroke="#b5652b" strokeWidth="4" strokeLinecap="round">
+                  <line x1="0" y1="-32" x2="0" y2="-44" />
+                  <line x1="22" y1="-22" x2="31" y2="-31" />
+                  <line x1="-22" y1="-22" x2="-31" y2="-31" />
+                  <line x1="32" y1="0" x2="44" y2="0" />
+                  <line x1="-32" y1="0" x2="-44" y2="0" />
+                </g>
+              </g>
+
+              {/* Grains semés */}
+              <g fill="#b5652b" opacity="0.55">
+                <circle cx="95" cy="120" r="4" />
+                <circle cx="115" cy="140" r="3" />
+                <circle cx="80" cy="150" r="3" />
+                <circle cx="230" cy="300" r="4" />
+                <circle cx="250" cy="285" r="3" />
+                <circle cx="255" cy="310" r="3" />
+              </g>
             </svg>
             {heroImageUrl ? (
               <div className="hero-photo">
@@ -124,12 +163,14 @@ export default async function Home() {
           <h2 className="section-heading">À propos de Noyo</h2>
           <p>
             Noyo est une structure spécialisée dans l&apos;achat, la
-            transformation et la vente de produits naturels.
+            transformation et la vente de produits naturels. Nous stockons
+            nos produits pour qu&apos;ils soient disponibles en tout temps,
+            avec une livraison possible partout en Haïti.
           </p>
           <p>
             C&apos;est aussi un intermédiaire entre les producteurs et les
-            personnes désirant se procurer des produits naturels bio sur
-            tout le territoire haïtien.
+            personnes désirant se procurer des produits naturels bio, où
+            qu&apos;elles se trouvent sur le territoire.
           </p>
         </section>
 
